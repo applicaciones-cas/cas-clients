@@ -665,13 +665,17 @@ public class Account_Accreditation implements GTransaction {
                         " a.sTransNox, " +
                         " a.cAcctType, " +
                         " a.sClientID, " +
+                        " a.sContctID, " +
                         " a.dTransact, " +
                         " a.cAcctType, " +
                         " a.sRemarksx, " +
                         " a.cTranType, " +
                         " a.sCategrCd, " +
                         " a.cTranStat, " +
-                        " b.sCompnyNm " +
+                        " b.sCompnyNm, " +
+                        " c.sAddrssID, " +
+                        " d.sMobileNo, " +
+                        " CONCAT(c.sHouseNox, ', ', c.sAddressx, ', ', c.sBrgyIDxx, ', ', c.sTownIDxx) AS sFllAddrs " +
                       " FROM Account_Client_Acccreditation a " +
                         " LEFT JOIN Client_Master b " +
                           " on a.sClientID = b.sClientID " +
@@ -688,7 +692,7 @@ public class Account_Accreditation implements GTransaction {
         lsSQL = MiscUtil.addCondition(lsSQL, "a.cAcctType = " + SQLUtil.toSQL(psAccountType));
         
        
-           
+        
         System.out.println("lsSQL = " + lsSQL);
         JSONObject loJSON;
         String lsValue;
@@ -708,14 +712,26 @@ public class Account_Accreditation implements GTransaction {
             
             if (loJSON != null && !"error".equals((String) loJSON.get("result"))) {
                 System.out.println("sTransNox = " + (String) loJSON.get("sTransNox"));
+                String sTransNox = (String) loJSON.get("sTransNox");
+                JSONObject loTransactionData = openTransaction(sTransNox);
+                loTransactionData.put("a.sClientID", (String) loJSON.get("sClientID"));
+                loTransactionData.put("b.sCompnyNm", (String) loJSON.get("sCompnyNm"));
                 
-                return openTransaction((String) loJSON.get("sTransNox"));
+                loTransactionData.put("c.sAddrssID", (String) loJSON.get("sAddrssID"));
+                loTransactionData.put("sFllAddrs",   (String) loJSON.get("sFllAddrs"));
+                
+                loTransactionData.put("a.sContctID", (String) loJSON.get("sContctID"));
+                loTransactionData.put("d.sMobileNo", (String) loJSON.get("sMobileNo"));
+                
+                
+                return loTransactionData;
             }else {
                 loJSON = new JSONObject();
                 loJSON.put("result", "error");
                 loJSON.put("message", "No client information found for: " + fsValue + ", Please check client type and client name details.");
                 return loJSON;
             }
+            
     }
     
 }
